@@ -611,7 +611,9 @@
       headers: { 'Accept': 'application/json' }
     }).then(function(res) {
       if (res.ok) {
-        window.location.href = form.querySelector('[name="_next"]').value;
+        var lang = document.documentElement.getAttribute('data-lang') || 'de';
+        var nextUrl = form.querySelector('[name="_next"]').value;
+        window.location.href = nextUrl + '?lang=' + lang;
       } else {
         throw new Error('Fehler beim Senden');
       }
