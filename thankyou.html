@@ -3,43 +3,133 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Danke!</title>
+<title>Danke</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lato:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500&display=swap');
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: 'Lato', sans-serif;
-    background: linear-gradient(135deg, #1f3b2c 0%, #2c4a37 50%, #1f3b2c 100%);
+    font-family: 'Jost', sans-serif;
+    background:
+      radial-gradient(ellipse at top, rgba(255,255,255,0.06), transparent 60%),
+      linear-gradient(160deg, #2b2a27 0%, #5f3f39 78%, #8c5f56 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 24px;
-    color: #f7f1e6;
+    color: #e6dcce;
     text-align: center;
+    position: relative;
+    overflow: hidden;
   }
+  canvas#snow { position: fixed; inset: 0; pointer-events: none; }
+  @media (prefers-reduced-motion: reduce) { canvas#snow { display: none; } }
+
   .card {
-    max-width: 480px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(212,175,110,0.4);
-    border-radius: 16px;
-    padding: 48px 32px;
+    position: relative;
+    z-index: 2;
+    max-width: 440px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(195,154,76,0.35);
+    border-radius: 18px;
+    padding: 40px 32px 34px;
   }
-  .icon { font-size: 48px; margin-bottom: 16px; }
+  .photo-frame {
+    width: 108px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 22px;
+    border-radius: 8px;
+    border: 3px solid rgba(246,239,228,0.9);
+    box-shadow: 5px 10px 22px rgba(0,0,0,0.4);
+    overflow: hidden;
+    transform: rotate(3deg);
+  }
+  .photo-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .icon-snowflake {
+    width: 26px; height: 26px;
+    margin: 0 auto 10px;
+    color: #c39a4c;
+  }
   h1 {
-    font-family: 'Playfair Display', serif;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 600;
     font-size: 28px;
-    color: #d4af6e;
-    margin-bottom: 16px;
+    color: #fff;
+    margin-bottom: 14px;
   }
-  p { font-size: 16px; line-height: 1.6; color: #e9e2d3; }
+  p { font-size: 15px; line-height: 1.65; color: #e6dcce; }
+  .date-graphic {
+    margin-top: 22px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .date-graphic .num { font-size: 26px; font-weight: 600; color: #c39a4c; }
+  .date-graphic .dot { font-size: 15px; color: #ddc48b; }
+  .date-graphic .year { font-size: 14px; color: #e6dcce; letter-spacing: 0.05em; }
+  .date-caption {
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: #ddc48b; margin-top: 3px;
+  }
 </style>
 </head>
 <body>
+  <canvas id="snow"></canvas>
   <div class="card">
-    <div class="icon">💌</div>
-    <h1>Vielen Dank!</h1>
-    <p>Deine Antworten wurden erfolgreich versendet.<br>Das ist ein wunderschönes Geschenk für Katharina &amp; Jay.</p>
+    <div class="photo-frame">
+      <img src="paar.jpg" alt="Katharina und Jay">
+    </div>
+    <svg class="icon-snowflake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <path d="M12 2v20M4.5 6l15 12M19.5 6l-15 12M12 2l-2 2m2-2l2 2M12 22l-2-2m2 2l2-2M4.5 6l2.7-.4M4.5 6l.4 2.7M19.5 6l-2.7-.4M19.5 6l-.4 2.7M4.5 18l2.7.4M4.5 18l.4-2.7M19.5 18l-2.7.4M19.5 18l-.4-2.7"/>
+    </svg>
+    <h1>Von Herzen, danke</h1>
+    <p>Deine Antworten sind angekommen und werden Teil einer ganz besonderen Traurede für Katharina &amp; Jay.</p>
+    <div class="date-graphic">
+      <span class="num">12</span><span class="dot">·</span><span class="num">12</span><span class="dot">·</span><span class="year">2026</span>
+    </div>
+    <div class="date-caption">Hochzeitstag</div>
   </div>
+  <script>
+    (function () {
+      var canvas = document.getElementById('snow');
+      if (!canvas) return;
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var ctx = canvas.getContext('2d');
+      var flakes = [];
+      function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+      function init() {
+        resize();
+        flakes = [];
+        for (var i = 0; i < 60; i++) {
+          flakes.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: 1 + Math.random() * 2.2,
+            speed: 0.3 + Math.random() * 0.7,
+            drift: Math.random() * 0.6 - 0.3,
+            opacity: 0.3 + Math.random() * 0.45
+          });
+        }
+      }
+      function tick() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (var i = 0; i < flakes.length; i++) {
+          var f = flakes[i];
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(230,220,206,' + f.opacity + ')';
+          ctx.fill();
+          f.y += f.speed; f.x += f.drift;
+          if (f.y > canvas.height) { f.y = -4; f.x = Math.random() * canvas.width; }
+        }
+        requestAnimationFrame(tick);
+      }
+      window.addEventListener('resize', resize);
+      init(); tick();
+    })();
+  </script>
 </body>
 </html>
