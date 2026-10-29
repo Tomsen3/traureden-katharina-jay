@@ -596,50 +596,16 @@
   });
 
   var form = document.getElementById('traurede-form');
-  var submitBtn = document.getElementById('submit-btn');
-  var errorBanner = document.getElementById('error-banner');
   var emailField = document.getElementById('email-field');
   var replyToField = document.getElementById('replyto-field');
+  var nextField = form.querySelector('[name="_next"]');
+  var thankYouUrl = nextField.value;
 
-  form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    if (submitBtn.disabled) return;
+  form.addEventListener('submit', function() {
     replyToField.value = emailField.value.trim();
-    submitBtn.disabled = true;
-    errorBanner.classList.remove('show');
-    document.getElementById('error-detail').textContent = '';
-    var data = new FormData(form);
-    // The normal action remains available for browsers without JavaScript.
-    var ajaxUrl = new URL(form.action);
-    ajaxUrl.pathname = '/ajax' + ajaxUrl.pathname;
-    var controller = new AbortController();
-    var timeout = setTimeout(function() { controller.abort(); }, 30000);
-    fetch(ajaxUrl.href, {
-      method: 'POST',
-      body: data,
-      headers: { 'Accept': 'application/json' },
-      signal: controller.signal
-    }).then(function(res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    }).then(function(result) {
-      // FormSubmit may report a refusal with HTTP 200 and success: "false".
-      if (!result || (result.success !== true && result.success !== 'true')) {
-        throw new Error(result && result.message ? result.message : 'FormSubmit: no success confirmation');
-      }
-      var lang = document.documentElement.getAttribute('data-lang') || 'de';
-      var nextUrl = new URL(form.querySelector('[name="_next"]').value);
-      nextUrl.searchParams.set('lang', lang);
-      window.location.href = nextUrl.href;
-    }).catch(function(error) {
-      submitBtn.disabled = false;
-      // Use textContent: service error messages must never become HTML.
-      document.getElementById('error-detail').textContent = error.message;
-      errorBanner.classList.add('show');
-      errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }).finally(function() {
-      clearTimeout(timeout);
-    });
+    var lang = document.documentElement.getAttribute('data-lang') || 'de';
+    nextField.value = thankYouUrl + '?lang=' + encodeURIComponent(lang);
+    // Let the browser POST to FormSubmit; _next handles the redirect.
   });
 
   /* ---------- gentle snowfall in the header ---------- */
@@ -693,3 +659,4 @@
 
 </body>
 </html>
+
