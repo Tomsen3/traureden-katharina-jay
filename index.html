@@ -318,6 +318,19 @@
   button[type="submit"]:hover { transform: translateY(-1px); box-shadow: 0 14px 28px rgba(95,63,57,0.38); }
   button[type="submit"]:disabled { opacity: 0.6; cursor: wait; }
 
+  .email-alternative {
+    background: transparent;
+    color: var(--mauve-deep);
+    border: 1px solid var(--mauve);
+    border-radius: 999px;
+    padding: 14px 20px;
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .email-alternative:hover { background: var(--taupe-light); }
+  .email-alternative:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
   .footnote { text-align: center; font-size: 12.5px; color: #8a7d70; margin-top: 6px; }
 
   [data-lang="de"] .en { display: none; }
@@ -565,6 +578,14 @@
     </button>
     <div class="footnote de">Deine Antworten werden direkt und sicher per E-Mail versendet.</div>
     <div class="footnote en">Your answers are sent directly and securely by email.</div>
+    <button type="button" id="email-btn" class="email-alternative" aria-describedby="email-help">
+      <span class="de">Alternativ per E-Mail senden</span>
+      <span class="en">Alternatively, send by email</span>
+    </button>
+    <div class="footnote" id="email-help">
+      <span class="de">Öffnet dein Mailprogramm mit beiden Empfängern. Bitte Antworten auf Vollständigkeit prüfen und dort senden.</span>
+      <span class="en">Opens your email app with both recipients. Please check that all answers are included, then send.</span>
+    </div>
   </form>
 
   <div class="status-banner error" id="error-banner" role="alert">
@@ -606,6 +627,19 @@
     var lang = document.documentElement.getAttribute('data-lang') || 'de';
     nextField.value = thankYouUrl + '?lang=' + encodeURIComponent(lang);
     // Let the browser POST to FormSubmit; _next handles the redirect.
+  });
+
+  document.getElementById('email-btn').addEventListener('click', function() {
+    if (!form.reportValidity()) return;
+    var answers = [];
+    form.querySelectorAll('input[type="text"], input[type="email"], textarea').forEach(function(field) {
+      answers.push(field.name + ':\r\n' + field.value.replace(/\r?\n/g, '\r\n'));
+    });
+    var subject = form.querySelector('[name="_subject"]').value;
+    var recipients = 'j.bisetto@gmx.de,tom.jansen@singende-krankenhaeuser.de';
+    window.location.href = 'mailto:' + recipients
+      + '?subject=' + encodeURIComponent(subject)
+      + '&body=' + encodeURIComponent(answers.join('\r\n\r\n'));
   });
 
   /* ---------- gentle snowfall in the header ---------- */
