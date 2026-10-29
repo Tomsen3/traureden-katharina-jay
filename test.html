@@ -570,9 +570,10 @@
     <div class="footnote en">Your answers are sent directly and securely by email.</div>
   </form>
 
-  <div class="status-banner error" id="error-banner">
+  <div class="status-banner error" id="error-banner" role="alert">
     <span class="de">Das Absenden hat leider nicht geklappt. Bitte versuche es gleich noch einmal.</span>
     <span class="en">Sending unfortunately didn't work. Please try again in a moment.</span>
+    <div id="error-detail"></div>
   </div>
 </main>
 
@@ -605,23 +606,42 @@
 
   form.addEventListener('submit', function(e) {
     e.preventDefault();
-    replyToField.value = emailField.value;
+    if (submitBtn.disabled) return;
+    replyToField.value = emailField.value.trim();
     submitBtn.disabled = true;
     errorBanner.classList.remove('show');
+    document.getElementById('error-detail').textContent = '';
     var data = new FormData(form);
-    fetch(form.action, {
+    // The normal action remains available for browsers without JavaScript.
+    var ajaxUrl = new URL(form.action);
+    ajaxUrl.pathname = '/ajax' + ajaxUrl.pathname;
+    var controller = new AbortController();
+    var timeout = setTimeout(function() { controller.abort(); }, 30000);
+    fetch(ajaxUrl.href, {
       method: 'POST',
       body: data,
-      headers: { 'Accept': 'application/json' }
+      headers: { 'Accept': 'application/json' },
+      signal: controller.signal
     }).then(function(res) {
-      if (res.ok) {
-        window.location.href = form.querySelector('[name="_next"]').value;
-      } else {
-        throw new Error('Fehler beim Senden');
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function(result) {
+      // FormSubmit may report a refusal with HTTP 200 and success: "false".
+      if (!result || (result.success !== true && result.success !== 'true')) {
+        throw new Error(result && result.message ? result.message : 'FormSubmit: no success confirmation');
       }
-    }).catch(function() {
+      var lang = document.documentElement.getAttribute('data-lang') || 'de';
+      var nextUrl = new URL(form.querySelector('[name="_next"]').value);
+      nextUrl.searchParams.set('lang', lang);
+      window.location.href = nextUrl.href;
+    }).catch(function(error) {
       submitBtn.disabled = false;
+      // Use textContent: service error messages must never become HTML.
+      document.getElementById('error-detail').textContent = error.message;
       errorBanner.classList.add('show');
+      errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }).finally(function() {
+      clearTimeout(timeout);
     });
   });
 
